@@ -6,13 +6,13 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *motorL = AFMS.getMotor(1);
 Adafruit_DCMotor *motorR = AFMS.getMotor(2);
 
-int irLimL = 960;
-int irLimC = 960;
-int irLimR = 960;
+int irLimL = 920;
+int irLimC = 935;
+int irLimR = 940;
 
 int turnInSpeed = 0;    // 0 (stop) to 255 (full speed)
-int turnOutSpeed = 50;  // 0 (stop) to 255 (full speed)
-int forwardSpeed = 100; // 0 (stop) to 255 (full speed)
+int turnOutSpeed = 100;  // 0 (stop) to 255 (full speed)
+int forwardSpeed = 200; // 0 (stop) to 255 (full speed)
 
 unsigned long irL = 0.0;
 unsigned long irC = 0.0;
@@ -40,49 +40,56 @@ void loop() {
   irC = analogRead(A1);
   irR = analogRead(A2);
 
-  if (getUserInput){
-    motorL->setSpeed(0); 
-    motorL->run(FORWARD);
-    motorR->setSpeed(0); 
-    motorR->run(FORWARD);
+  motorL->setSpeed(0); 
+  motorL->run(FORWARD);
+  motorR->setSpeed(0); 
+  motorR->run(FORWARD);
 
-    Serial.print("Get user input? Answer 'y' in the next 5s");
+  if (getUserInput){
+    Serial.println("Get user input? Answer in the next 5s for yes, ignore for no.");
+    delay(5000);
+    if (Serial.available() == 0) {
+      getUserInput = false;
+    }
+  }
+  if (getUserInput){
 
     Serial.print("Supply turnInSpeed 0->255: (enter -1 to use pre-programmed value of "); Serial.print(turnInSpeed); Serial.println(")"); //Prompt User for Input
+    Serial.println(Serial.available());
     while (Serial.available() == 0) {
+      Serial.println(Serial.available());
       // Wait for User to Input Data
     }
     newVal = Serial.parseInt(); //Read the data the user has input
     if ( newVal >= 0) {
+      Serial.print("newVal: "); Serial.println(newVal);
       turnInSpeed = newVal;
     }
 
     Serial.print("Supply turnOutSpeed 0->255: (enter -1 to use pre-programmed value of "); Serial.print(turnOutSpeed); Serial.println(")"); //Prompt User for Input
+    Serial.println(Serial.available());
     while (Serial.available() == 0) {
+      Serial.println(Serial.available());
       // Wait for User to Input Data
     }
     newVal = Serial.parseInt(); //Read the data the user has input
     if ( newVal >= 0) {
+      Serial.print("newVal: "); Serial.println(newVal);
       turnOutSpeed = newVal;
     }
 
     Serial.print("Supply forwardSpeed 0->255: (enter -1 to use pre-programmed value of "); Serial.print(forwardSpeed); Serial.println(")"); //Prompt User for Input
     while (Serial.available() == 0) {
+      Serial.println(Serial.available());
       // Wait for User to Input Data
     }
     newVal = Serial.parseInt(); //Read the data the user has input
     if ( newVal >= 0) {
+      Serial.print("newVal: "); Serial.println(newVal);
       forwardSpeed = newVal;
     }
 
-    Serial.print("Supply forwardSpeed: (enter -1 to use pre-programmed value of "); Serial.print(forwardSpeed); Serial.println(")"); //Prompt User for Input
-    while (Serial.available() == 0) {
-      // Wait for User to Input Data
-    }
-    int newVal = Serial.parseInt(); //Read the data the user has input
-    if ( newVal >= 0) {
-      forwardSpeed = newVal;
-    }
+    
 
     getUserInput = false;
   }
