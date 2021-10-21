@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_MS_PWMServoDriver.h"
-//#inlcude <Serial.h>
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 Adafruit_DCMotor *motorL = AFMS.getMotor(1);
@@ -19,19 +18,13 @@ int irLimR = 650;
 // speeds should be between 0 (stop) and 255 (full speed)
 
 int shallowTurnInsideSpeed = 0;    // speed of the inside wheel during a shallow turn (Light-Light-Black or Black-Light-Light)
-int shallowTurnOutsideSpeed = 30;  // speed of the outside wheel during a shallow turn (should be higher than shallowTurnInsideSpeed)
+int shallowTurnOutsideSpeed = 50;  // speed of the outside wheel during a shallow turn (should be higher than shallowTurnInsideSpeed)
 
 int hardTurnInsideSpeed = 0;    // speed of the inside wheel during a hard turn (Black-Black-Light or Light-Black-Black)
-int hardTurnOutsideSpeed = 30;  // speed of the outside wheel during a hard turn (should be higher than hardTurnInsideSpeed)
+int hardTurnOutsideSpeed = 50;  // speed of the outside wheel during a hard turn (should be higher than hardTurnInsideSpeed)
 
-int forwardSpeed = 20; // 0 (stop) to 255 (full speed)
+int forwardSpeed = 50; // 0 (stop) to 255 (full speed)
 
-// Ask for speed tuning input (shallow turning only) at when starting? 
-// input anytime by entering 2 in the serial input bar
-bool getUserInput = false;
-
-// Starting robot mode
-int robotMode = 1; // 1 for allow motors to run, 0 for stop, 2 for get user input
 
 unsigned long irL = 0.0;
 unsigned long irC = 0.0;
@@ -41,10 +34,10 @@ bool blackL = false;
 bool blackC = false;
 bool blackR = false;
 
-
+bool getUserInput = false;
 int newVal = 0;
 
-
+int motorsGo = 1; // 1 for allow motors to run, 0 for stop.
 
 int moveDir = 0; // 0 for straight, 3 for stop, 4 for lost the line, -2 for turn hard left, -1 for turn shallow left, 1 for turn shallow right, 2 for turn hard right
 
@@ -52,10 +45,6 @@ void setup() {
   // put your setup code here, to run once:
   AFMS.begin();
   Serial.begin(9600); // open the serial port at 9600 bps:
-}
-
-void serial_flush(void) {
-  while (Serial.available()) Serial.read();
 }
 
 void loop() {
@@ -71,19 +60,18 @@ void loop() {
     motorR->setSpeed(0); 
     motorR->run(FORWARD);
     
-    Serial.println("Get user input? Answer (and wait) in 5s for yes, ignore for no.");
+    Serial.println("Get user input? Answer in the next 5s for yes, ignore for no.");
     delay(5000);
     if (Serial.available() == 0) {
       getUserInput = false;
-    } else {
-      serial_flush();
     }
   }
   if (getUserInput){
 
-    serial_flush();
     Serial.print("Supply shallowTurnInsideSpeed 0->255: (enter -1 to use pre-programmed value of "); Serial.print(shallowTurnInsideSpeed); Serial.println(")"); //Prompt User for Input
+    Serial.println(Serial.available());
     while (Serial.available() == 0) {
+      Serial.println(Serial.available());
       // Wait for User to Input Data
     }
     newVal = Serial.parseInt(); //Read the data the user has input
@@ -92,9 +80,10 @@ void loop() {
       shallowTurnInsideSpeed = newVal;
     }
 
-    serial_flush();
     Serial.print("Supply shallowTurnOutsideSpeed 0->255: (enter -1 to use pre-programmed value of "); Serial.print(shallowTurnOutsideSpeed); Serial.println(")"); //Prompt User for Input
+    Serial.println(Serial.available());
     while (Serial.available() == 0) {
+      Serial.println(Serial.available());
       // Wait for User to Input Data
     }
     newVal = Serial.parseInt(); //Read the data the user has input
@@ -103,9 +92,9 @@ void loop() {
       shallowTurnOutsideSpeed = newVal;
     }
 
-    serial_flush();
     Serial.print("Supply forwardSpeed 0->255: (enter -1 to use pre-programmed value of "); Serial.print(forwardSpeed); Serial.println(")"); //Prompt User for Input
     while (Serial.available() == 0) {
+      Serial.println(Serial.available());
       // Wait for User to Input Data
     }
     newVal = Serial.parseInt(); //Read the data the user has input
@@ -165,26 +154,20 @@ void loop() {
   }
 
   if (Serial.available() > 0 ) {
-    robotMode = Serial.parseInt();
+    motorsGo = Serial.parseInt();
   }
 
-//  if (robotMode == 0) {
-//    motorL->setSpeed(0); 
-//    motorR->setSpeed(0); 
-//    motorL->run(FORWARD);
-//    motorR->run(FORWARD);
-//  } else if (robotMode == 2) {
-//    getUserInput = true;
-//    robotMode = 0;
-//  } else {
-//    motorL->run(FORWARD);
-//    motorR->run(FORWARD);
-//  }
+  if (motorsGo == 0) {
+    motorL->setSpeed(0); 
+    motorR->setSpeed(0); 
+    motorL->run(FORWARD);
+    motorR->run(FORWARD);
+  } else {
+    motorL->run(FORWARD);
+    motorR->run(FORWARD);
+  }
 
-  motorL->run(FORWARD);
-  motorR->run(FORWARD);
-
-  Serial.print(robotMode);    Serial.print(",");
+  Serial.print(motorsGo);    Serial.print(",");
   Serial.print(irL);    Serial.print(",");
   Serial.print(irC);    Serial.print(",");
   Serial.print(irR);    Serial.print(",");
