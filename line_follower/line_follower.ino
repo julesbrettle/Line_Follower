@@ -177,6 +177,7 @@ void loop() {
   if (Serial.available() > 0 ) {
     robotMode = Serial.parseInt();
   }
+  serial_flush();
   
   // if robotMode is 0 then stop motors, if 2 then get new user inputs, 
   // (if 1 then drive motors at speed set in control loop)
